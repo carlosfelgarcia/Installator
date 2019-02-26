@@ -21,22 +21,64 @@ class Download(object):
         self.__fileExt = None
         self.__extractedFolders = {}
 
-    def downloadFile(self):
-        """Download the file to be intall."""
-        self.__fileExt = self.__url.split('/')[-1]
-        uniqueName = str(uuid.uuid4())
-        self.__fileDownloaded = os.path.join(tempfile.gettempdir(), uniqueName, '.{ext}'.format(ext=self.__fileExt))
-        with urllib.request.urlopen(self.__url) as response, open(self.__fileDownloaded, 'wb') as out_file:
-            data = response.read()
-            out_file.write(data)
+    def download(self):
+        """Orchestate the download of a file.
 
-    def extractFile(self):
-        """Extract the downloaded file."""
+        It downloads a file, and extract it.
+        """
+        self.__fileDownloaded = self.downloadFile()
+        self.__extractedPath = self.extractFile(self.__fileDownloaded)
+        self.__extractedFolders[self.__fileDownloaded] = self.__extractedPath
+
+    def downloadFile(self):
+        """Download the file to be intall.
+
+        Return:
+            str: The path where the downloaded file is.
+        """
+        self.__fileExt = os.path.splitext(self.__url)[-1].split('.')[-1]
+        uniqueName = str(uuid.uuid4())
+        fileDownloaded = os.path.join(
+            tempfile.gettempdir(),
+            '{uniqueName}.{ext}'.format(uniqueName=uniqueName, ext=self.__fileExt)
+        )
+        with urllib.request.urlopen(self.__url) as response, open(fileDownloaded, 'wb') as out_file:
+                data = response.read()
+                out_file.write(data)
+
+        return fileDownloaded
+
+    def extractFile(self, filePath):
+        """Extract the downloaded file.
+
+        Args:
+            filePath (str): The file path to be extract.
+
+        Return:
+            str: The folder where the file was extracted.
+        """
         extractor = Extractor.Extractor(self.__fileExt)
         uniqueName = str(uuid.uuid4())
-        whereToExtract = os.path.join(tempfile.gettempdir(), uniqueName)
-        self.__extractedFolders[self.__fileDownloaded] = whereToExtract
-        extractor.getFunction()(self.__fileDownloaded, whereToExtract)
+        extractedPath = os.path.join(tempfile.gettempdir(), uniqueName)
+        extractor.getFunction()(self.__fileDownloaded, extractedPath)
+
+        return extractedPath
+
+    def getDownloadedFiles(self):
+        """Get all the files and folders of the files downloaded in this session.
+
+        Return:
+            dict: Key = The file downloaded, value = The path where it was extracted.
+        """
+        return self.__extractedFolders
+
+    def getExtractedPath(self):
+        """Get the path where the file was extracted.
+
+        Return:
+            str: The path where the extracted file is.
+        """
+        return self.__extractedPath
 
     def getFileDownloaded(self):
         """Get the file base on the url provided.
