@@ -1,6 +1,7 @@
 """This module handle the connection and download of the files."""
 import tempfile
 import urllib.request
+# from urllib import Request, urlopen
 import os
 import uuid
 
@@ -10,7 +11,7 @@ import Extractor
 class Download(object):
     """Download module."""
 
-    def __init__(self, url):
+    def __init__(self, url, key):
         """Constructor.
 
         Args:
@@ -20,6 +21,7 @@ class Download(object):
         self.__fileDownloaded = None
         self.__fileExt = None
         self.__extractedFolders = {}
+        self.__key = key
 
     def download(self):
         """Orchestate the download of a file.
@@ -42,7 +44,10 @@ class Download(object):
             tempfile.gettempdir(),
             '{uniqueName}.{ext}'.format(uniqueName=uniqueName, ext=self.__fileExt)
         )
-        with urllib.request.urlopen(self.__url) as response, open(fileDownloaded, 'wb') as out_file:
+        urlHeader = {'Authorization': 'token {key}'.format(key=self.__key)} if self.__key else {}
+        print('HEADER ---> ', urlHeader)
+        req = urllib.request.Request(self.__url, headers=urlHeader)
+        with urllib.request.urlopen(req) as response, open(fileDownloaded, 'wb') as out_file:
                 data = response.read()
                 out_file.write(data)
 
