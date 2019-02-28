@@ -45,7 +45,6 @@ class Download(object):
             '{uniqueName}.{ext}'.format(uniqueName=uniqueName, ext=self.__fileExt)
         )
         urlHeader = {'Authorization': 'token {key}'.format(key=self.__key)} if self.__key else {}
-        print('HEADER ---> ', urlHeader)
         req = urllib.request.Request(self.__url, headers=urlHeader)
         with urllib.request.urlopen(req) as response, open(fileDownloaded, 'wb') as out_file:
                 data = response.read()

@@ -2,6 +2,7 @@
 import sys
 import os
 import Download
+import Install
 
 
 class Installator(object):
@@ -20,11 +21,12 @@ class Installator(object):
         self.__currentVersion = currentVersion
 
         self.__downloadModule = Download.Download(url, key)
+        self.__installModule = Install.Install(self.__destination)
 
     def install(self):
         """Install the file located in the url given."""
         self.__downloadModule.download()
-        print('Downloaded Files ----> ', self.__downloadModule.getDownloadedFiles())
+        self.__installModule.setSourcePath(self.__downloadModule.getExtractedPath())
 
 
 if __name__ == '__main__':
