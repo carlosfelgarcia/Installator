@@ -3,22 +3,23 @@ import sys
 import os
 import Download
 import Install
+import tempfile
 
 
 class Installator(object):
     """Main class."""
 
-    def __init__(self, url, destination, currentVersion=0, key=None):
+    def __init__(self, url, destination, infoFile="0.0.0", key=None):
         """Constructor.
 
         Args:
             url (str):  The url to download the package to install.
             destination (str): Where to install the package.
-            currentVersion (int): Current version of the app to be compared with the downloaded package. Defaults to 0.
+            infoFile (str): File that have the information of the project (version veriable is required)
             key (type): If the system needs a key to access. Defaults to None.
         """
         self.__destination = destination
-        self.__currentVersion = currentVersion
+        self.__infoFile = infoFile
 
         self.__downloadModule = Download.Download(url, key)
         self.__installModule = Install.Install(self.__destination)
@@ -27,6 +28,7 @@ class Installator(object):
         """Install the file located in the url given."""
         self.__downloadModule.download()
         self.__installModule.setSourcePath(self.__downloadModule.getExtractedPath())
+        self.__installModule.install()
 
 
 if __name__ == '__main__':
@@ -37,8 +39,8 @@ if __name__ == '__main__':
         key = f.read().rstrip('\n')
     # --------------------------------------------- Removed when done --------------------------------------------------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     if len(args) == 1:
-        url = 'https://github.com/carlosfelgarcia/testPrivate/archive/0.1.zip'
-        dest = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tmp')
+        url = 'https://github.com/carlosfelgarcia/rvtools/archive/0.1.2.zip'
+        dest = os.path.join(tempfile.gettempdir(), 'testInstall')
         removeTmp = True
     else:
         url = args[1]

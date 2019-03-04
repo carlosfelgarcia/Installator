@@ -1,6 +1,13 @@
 """Handle the IO and installation process."""
 import shutil
 import os
+from Check import Checks
+
+
+class InstallationError(Exception):
+    """Custom error to raise if the installation fails."""
+
+    pass
 
 
 class Install(object):
@@ -23,8 +30,20 @@ class Install(object):
         It then run the checks to see if the installation is completed.
         """
         if self.checkDestination():
-            self.removeDestination()
+            self.removeDestination(verbose=True)
         self.copyFiles()
+        if not self.__runChecks():
+            raise InstallationError("The installation has fail, it did not pass one of the checks")
+
+    def __runChecks(self):
+        """Run the checks to verify the installation.
+
+        Return:
+            bool: True if pass all, False if it fails any.
+        """
+        runnedChecks = []
+        runnedChecks.append(Checks.checksFilesInstalled(self.__destinationPath, verbose=True))
+        return all(runnedChecks)
 
     def copyFiles(self):
         """Copy the files from the source to the destination.
@@ -33,23 +52,23 @@ class Install(object):
         """
         shutil.copytree(self.__sourcePath, self.__destinationPath)
 
-    def checkDestination(self, removed=True):
-        """Check if the destination exist and removed if flag is True.
+    def checkDestination(self):
+        """Check if the destination exist.
 
         Resturn:
             bool: Indicating if the destination path exist in the system or not.
         """
         return os.path.exists(self.__destinationPath)
 
-    def removeDestination(self, removeVerbose=False):
+    def removeDestination(self, verbose=False):
         """Remove the destination directory.
 
         It have the option to have a verbose if what to expouse information.
 
         Args:
-            removeVerbose (bool): It use a walk method to removed file by file. Defaults to False.
+            verbose (bool): It use a walk method to removed file by file. Defaults to False.
         """
-        if not removeVerbose:
+        if not verbose:
             shutil.rmtree(self.__destinationPath)
         else:
             for root, dirs, files in os.walk(self.__destinationPath, topdown=False):

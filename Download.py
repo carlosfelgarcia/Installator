@@ -29,11 +29,12 @@ class Download(object):
         It downloads a file, and extract it.
         """
         self.__fileDownloaded = self.downloadFile()
-        self.__extractedPath = self.extractFile(self.__fileDownloaded)
+        tmpExtractedPath = self.extractFile(self.__fileDownloaded)
+        self.__extractedPath = os.path.join(tmpExtractedPath, os.listdir(tmpExtractedPath)[0])
         self.__extractedFolders[self.__fileDownloaded] = self.__extractedPath
 
     def downloadFile(self):
-        """Download the file to be intall.
+        """Download the file to be intall from the url given.
 
         Return:
             str: The path where the downloaded file is.
