@@ -11,6 +11,8 @@ import Extractor
 class Download(object):
     """Download module."""
 
+    BINARY_EXT = ['exe']
+
     def __init__(self, url, key):
         """Constructor.
 
@@ -19,9 +21,11 @@ class Download(object):
         """
         self.__url = url
         self.__fileDownloaded = None
-        self.__fileExt = None
-        self.__extractedFolders = {}
+        self.__extractedPath = None
+        self.__fileExt = url.split('.')[-1]
         self.__key = key
+        if self.__fileExt not in self.BINARY_EXT:
+            self.__extractor = Extractor.Extractor(self.__fileExt)
 
     def download(self):
         """Orchestate the download of a file.
@@ -29,9 +33,10 @@ class Download(object):
         It downloads a file, and extract it.
         """
         self.__fileDownloaded = self.downloadFile()
-        tmpExtractedPath = self.extractFile(self.__fileDownloaded)
-        self.__extractedPath = os.path.join(tmpExtractedPath, os.listdir(tmpExtractedPath)[0])
-        self.__extractedFolders[self.__fileDownloaded] = self.__extractedPath
+        if self.__fileExt not in self.BINARY_EXT:
+            tmpExtractedPath = self.extractFile(self.__fileDownloaded)
+            self.__extractedPath = os.path.join(tmpExtractedPath, os.listdir(tmpExtractedPath)[0])
+
 
     def downloadFile(self):
         """Download the file to be intall from the url given.
@@ -39,7 +44,6 @@ class Download(object):
         Return:
             str: The path where the downloaded file is.
         """
-        self.__fileExt = os.path.splitext(self.__url)[-1].split('.')[-1]
         uniqueName = str(uuid.uuid4())
         fileDownloaded = os.path.join(
             tempfile.gettempdir(),
@@ -47,6 +51,7 @@ class Download(object):
         )
         urlHeader = {'Authorization': 'token {key}'.format(key=self.__key)} if self.__key else {}
         req = urllib.request.Request(self.__url, headers=urlHeader)
+        print('Downloading {url}....'.format(url=self.__url))
         with urllib.request.urlopen(req) as response, open(fileDownloaded, 'wb') as out_file:
                 data = response.read()
                 out_file.write(data)
@@ -62,20 +67,11 @@ class Download(object):
         Return:
             str: The folder where the file was extracted.
         """
-        extractor = Extractor.Extractor(self.__fileExt)
         uniqueName = str(uuid.uuid4())
         extractedPath = os.path.join(tempfile.gettempdir(), uniqueName)
-        extractor.getFunction()(self.__fileDownloaded, extractedPath)
+        self.__extractor.getFunction()(self.__fileDownloaded, extractedPath)
 
         return extractedPath
-
-    def getDownloadedFiles(self):
-        """Get all the files and folders of the files downloaded in this session.
-
-        Return:
-            dict: Key = The file downloaded, value = The path where it was extracted.
-        """
-        return self.__extractedFolders
 
     def getExtractedPath(self):
         """Get the path where the file was extracted.

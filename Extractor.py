@@ -23,7 +23,7 @@ class Extractor(object):
         self.__functions = {'zip': self.zipFile}
 
         if self.__fileExt not in self.__functions:
-            raise NoFunctionFound("Extension file is not supported {ext}".format(ext=self.__fileExt))
+            raise NoFunctionFound('Extension file "{ext}" is not supported'.format(ext=self.__fileExt))
 
     def getFunction(self):
         """Get the function that can extract the given file extension.

@@ -13,12 +13,13 @@ class InstallationError(Exception):
 class Install(object):
     """Module that handle the installation and checks if the instalation is completed."""
 
-    def __init__(self, destinationPath, sourcePath=None):
+    def __init__(self, destinationPath, sourcePath=None, overwrite=True):
         """Constructor.
 
         Args:
             sourcePath (str): The source of the files to get installed.
             destinationPath (str): Where the files are going to be intalled.
+            overwrite (bool): TODO: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         """
         self.__sourcePath = sourcePath
         self.__destinationPath = destinationPath
@@ -30,10 +31,13 @@ class Install(object):
         It then run the checks to see if the installation is completed.
         """
         if self.checkDestination():
-            self.removeDestination(verbose=True)
+            self.removeFiles(self.__destinationPath, verbose=True)
         self.copyFiles()
         if not self.__runChecks():
             raise InstallationError("The installation has fail, it did not pass one of the checks")
+
+        # Clean the tmp folder by removing the source
+        self.removeFiles(self.__sourcePath)
 
     def __runChecks(self):
         """Run the checks to verify the installation.
@@ -50,7 +54,10 @@ class Install(object):
 
         At this point it assume that the destination folder does not exist.
         """
-        shutil.copytree(self.__sourcePath, self.__destinationPath)
+        if os.path.isdir(self.__sourcePath):
+            shutil.copytree(self.__sourcePath, self.__destinationPath)
+        else:
+            shutil.copy2(self.__sourcePath, self.__destinationPath)
 
     def checkDestination(self):
         """Check if the destination exist.
@@ -60,28 +67,33 @@ class Install(object):
         """
         return os.path.exists(self.__destinationPath)
 
-    def removeDestination(self, verbose=False):
+    def removeFiles(self, pathToRemove, verbose=False):
         """Remove the destination directory.
 
         It have the option to have a verbose if what to expouse information.
 
         Args:
+            pathToRemove (str): Path to be remove from the file system
             verbose (bool): It use a walk method to removed file by file. Defaults to False.
         """
-        if not verbose:
-            shutil.rmtree(self.__destinationPath)
+        if os.path.isdir(pathToRemove):
+            if not verbose:
+                shutil.rmtree(pathToRemove)
+            else:
+                for root, dirs, files in os.walk(pathToRemove, topdown=False):
+                    for name in files:
+                        fileToRemove = os.path.join(root, name)
+                        print('Removing file ', fileToRemove)
+                        os.remove(fileToRemove)
+                    for name in dirs:
+                        dirToRemove = os.path.join(root, name)
+                        print('Removing directory ', dirToRemove)
+                        os.rmdir(dirToRemove)
+                print('Removing directory ', pathToRemove)
+                os.rmdir(pathToRemove)
         else:
-            for root, dirs, files in os.walk(self.__destinationPath, topdown=False):
-                for name in files:
-                    fileToRemove = os.path.join(root, name)
-                    print('Removing file ', fileToRemove)
-                    os.remove(fileToRemove)
-                for name in dirs:
-                    dirToRemove = os.path.join(root, name)
-                    print('Removing directory ', dirToRemove)
-                    os.rmdir(dirToRemove)
-            print('Removing directory ', self.__destinationPath)
-            os.rmdir(self.__destinationPath)
+            print('Removing File ', pathToRemove)
+            os.remove(pathToRemove)
 
     def setSourcePath(self, sourcePath):
         """Set the source path.
