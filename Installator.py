@@ -27,20 +27,25 @@ class Installator(object):
     def install(self):
         """Install the file located in the url given."""
         self.__downloadModule.download()
-        self.__installModule.setSourcePath(self.__downloadModule.getExtractedPath())
+        downloadedPath = self.__downloadModule.getExtractedPath() or self.__downloadModule.getFileDownloaded()
+        self.__installModule.setSourcePath(downloadedPath)
         self.__installModule.install()
 
 
 if __name__ == '__main__':
     args = sys.argv
     removeTmp = False
+    key = None
     # --------------------------------------------- Removed when done --------------------------------------------------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    with open('/tmp/key.txt', 'r') as f:
-        key = f.read().rstrip('\n')
+    try:
+        with open('/tmp/key.txt', 'r') as f:
+            key = f.read().rstrip('\n')
+    except FileNotFoundError:
+        print('Key is none')
     # --------------------------------------------- Removed when done --------------------------------------------------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     if len(args) == 1:
-        url = 'https://github.com/carlosfelgarcia/rvtools/archive/0.1.2.zip'
-        dest = os.path.join(tempfile.gettempdir(), 'testInstall')
+        url = 'https://github.com/carlosfelgarcia/Data-Analysis-Tool/releases/download/0.0.0/UI.exe'
+        dest = os.path.join(tempfile.gettempdir(), 'DataAnalysis.exe')
         removeTmp = True
     else:
         url = args[1]
