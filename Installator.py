@@ -1,35 +1,38 @@
 """Main module that will orchestate the installation process."""
 import sys
 import os
+import tempfile
 import Download
 import Install
-import tempfile
+import Update
 
 
 class Installator(object):
     """Main class."""
 
-    def __init__(self, url, destination, infoFile="0.0.0", key=None):
-        """Constructor.
+    def install(self, url, targetPath, key=None):
+        """Install the file located in the url given.
 
         Args:
             url (str):  The url to download the package to install.
-            destination (str): Where to install the package.
-            infoFile (str): File that have the information of the project (version veriable is required)
-            key (type): If the system needs a key to access. Defaults to None.
+            targetPath (str): Where to install the package.
+            key (str): If the system needs a key to access. Defaults to None.
         """
-        self.__destination = destination
-        self.__infoFile = infoFile
+        download = Download.Download(url, key)
+        download.download()
+        downloadedPath = download.getExtractedPath() or download.getFileDownloaded()
+        install = Install.Install(downloadedPath, targetPath)
+        install.install()
 
-        self.__downloadModule = Download.Download(url, key)
-        self.__installModule = Install.Install(self.__destination)
+    def update(self, url, currentVersion='0.0.0'):
+        """Search for updates.
 
-    def install(self):
-        """Install the file located in the url given."""
-        self.__downloadModule.download()
-        downloadedPath = self.__downloadModule.getExtractedPath() or self.__downloadModule.getFileDownloaded()
-        self.__installModule.setSourcePath(downloadedPath)
-        self.__installModule.install()
+        If an update is found, it can notify the user or install the update and notify the end user that the update
+        has been installed.
+        """
+        update = Update.Update(url, currentVersion)
+        updateUrl = update.checkUpdates()
+        print('URL to update found --> ', updateUrl)
 
 
 if __name__ == '__main__':
@@ -44,7 +47,8 @@ if __name__ == '__main__':
         print('Key is none')
     # --------------------------------------------- Removed when done --------------------------------------------------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     if len(args) == 1:
-        url = 'https://github.com/carlosfelgarcia/Data-Analysis-Tool/releases/download/0.0.0/UI.exe'
+        #url = 'https://github.com/carlosfelgarcia/Data-Analysis-Tool/releases/download/0.0.0/UI.exe'
+        url = 'https://github.com/carlosfelgarcia/Data-Analysis-Tool/releases/tag/'
         dest = os.path.join(tempfile.gettempdir(), 'DataAnalysis.exe')
         removeTmp = True
     else:
@@ -53,5 +57,6 @@ if __name__ == '__main__':
     print('URL - {url}'.format(url=url))
     print('Dest - {dest}'.format(dest=dest))
     # print('Version - {ver}'.format(ver=args[3]))
-    app = Installator(url, dest, key=key)
-    app.install()
+    app = Installator()
+    # app.install(url, dest, key)
+    app.update(url)
