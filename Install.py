@@ -13,16 +13,15 @@ class InstallationError(Exception):
 class Install(object):
     """Module that handle the installation and checks if the instalation is completed."""
 
-    def __init__(self, destinationPath, sourcePath=None, overwrite=True):
+    def __init__(self, sourcePath, targetPath):
         """Constructor.
 
         Args:
-            sourcePath (str): The source of the files to get installed.
-            destinationPath (str): Where the files are going to be intalled.
-            overwrite (bool): TODO: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+            sourcePath (str): The path of the source folder.
+            targetPath (str): The path where the file will get installed.
         """
         self.__sourcePath = sourcePath
-        self.__destinationPath = destinationPath
+        self.__targetPath = targetPath
 
     def install(self):
         """Install the app base on the source and the destination given.
@@ -30,14 +29,14 @@ class Install(object):
         It makes sure that the destination folder does not exist.
         It then run the checks to see if the installation is completed.
         """
-        if self.checkDestination():
-            self.removeFiles(self.__destinationPath, verbose=True)
-        self.copyFiles()
+        if self.__checkDestination():
+            self.__removeFiles(self.__targetPath, verbose=True)
+        self.__copyFiles()
         if not self.__runChecks():
             raise InstallationError("The installation has fail, it did not pass one of the checks")
 
         # Clean the tmp folder by removing the source
-        self.removeFiles(self.__sourcePath)
+        self.__removeFiles(self.__sourcePath)
 
     def __runChecks(self):
         """Run the checks to verify the installation.
@@ -46,28 +45,28 @@ class Install(object):
             bool: True if pass all, False if it fails any.
         """
         runnedChecks = []
-        runnedChecks.append(Checks.checksFilesInstalled(self.__destinationPath, verbose=True))
+        runnedChecks.append(Checks.checksFilesInstalled(self.__targetPath, verbose=True))
         return all(runnedChecks)
 
-    def copyFiles(self):
+    def __copyFiles(self):
         """Copy the files from the source to the destination.
 
         At this point it assume that the destination folder does not exist.
         """
         if os.path.isdir(self.__sourcePath):
-            shutil.copytree(self.__sourcePath, self.__destinationPath)
+            shutil.copytree(self.__sourcePath, self.__targetPath)
         else:
-            shutil.copy2(self.__sourcePath, self.__destinationPath)
+            shutil.copy2(self.__sourcePath, self.__targetPath)
 
-    def checkDestination(self):
+    def __checkDestination(self):
         """Check if the destination exist.
 
         Resturn:
             bool: Indicating if the destination path exist in the system or not.
         """
-        return os.path.exists(self.__destinationPath)
+        return os.path.exists(self.__targetPath)
 
-    def removeFiles(self, pathToRemove, verbose=False):
+    def __removeFiles(self, pathToRemove, verbose=False):
         """Remove the destination directory.
 
         It have the option to have a verbose if what to expouse information.
@@ -94,6 +93,14 @@ class Install(object):
         else:
             print('Removing File ', pathToRemove)
             os.remove(pathToRemove)
+
+    def setDestinationPath(self, targetPath):
+        """Set the destination path.
+
+        Args:
+            targetPath (str): The path where the file will get installed.
+        """
+        self.__targetPath = targetPath
 
     def setSourcePath(self, sourcePath):
         """Set the source path.

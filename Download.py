@@ -13,19 +13,17 @@ class Download(object):
 
     BINARY_EXT = ['exe']
 
-    def __init__(self, url, key):
+    def __init__(self, url, key=None):
         """Constructor.
 
         Args:
-            url (str): The url to connect and download the files.
+            url (str): The url to download the files.
+            key (str): The key to use for web auth. Defaults to None
         """
-        self.__url = url
+        self.setUrl(url)
         self.__fileDownloaded = None
         self.__extractedPath = None
-        self.__fileExt = url.split('.')[-1]
-        self.__key = key
-        if self.__fileExt not in self.BINARY_EXT:
-            self.__extractor = Extractor.Extractor(self.__fileExt)
+        self.__key = None
 
     def download(self):
         """Orchestate the download of a file.
@@ -36,7 +34,6 @@ class Download(object):
         if self.__fileExt not in self.BINARY_EXT:
             tmpExtractedPath = self.extractFile(self.__fileDownloaded)
             self.__extractedPath = os.path.join(tmpExtractedPath, os.listdir(tmpExtractedPath)[0])
-
 
     def downloadFile(self):
         """Download the file to be intall from the url given.
@@ -67,11 +64,29 @@ class Download(object):
         Return:
             str: The folder where the file was extracted.
         """
+        self.__extractor = Extractor.Extractor(self.__fileExt)
         uniqueName = str(uuid.uuid4())
         extractedPath = os.path.join(tempfile.gettempdir(), uniqueName)
         self.__extractor.getFunction()(self.__fileDownloaded, extractedPath)
 
         return extractedPath
+
+    def setUrl(self, url):
+        """Set the URL to download the files and get the extension of the download file.
+
+        Args:
+            url (str): The url to download the files.
+        """
+        self.__url = url
+        self.__fileExt = url.split('.')[-1]
+
+    def setKey(self, key):
+        """Set the key for the authentication if need it.
+
+        Args:
+            key (str): The key to use for web auth.
+        """
+        self.__key = key
 
     def getExtractedPath(self):
         """Get the path where the file was extracted.
