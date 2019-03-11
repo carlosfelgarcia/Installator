@@ -1,7 +1,4 @@
 """Main module that will orchestate the installation process."""
-import sys
-import os
-import tempfile
 import Download
 import Install
 import Update
