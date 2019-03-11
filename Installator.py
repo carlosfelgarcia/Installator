@@ -24,39 +24,23 @@ class Installator(object):
         install = Install.Install(downloadedPath, targetPath)
         install.install()
 
-    def update(self, url, currentVersion='0.0.0'):
+    def update(self, url, currentVersion, key=None, fileName=None, targetPath=None, install=False):
         """Search for updates.
 
         If an update is found, it can notify the user or install the update and notify the end user that the update
         has been installed.
+
+        Args:
+            url (str):  The url to download the package to install.
+            currentVersion (str): The current version of the app running.
+            key (str): If the system needs a key to access. Defaults to None.
+
+        Return:
+            str or None: The url found if install flag is False or None if no update is found.
         """
         update = Update.Update(url, currentVersion)
         updateUrl = update.checkUpdates()
-        print('URL to update found --> ', updateUrl)
+        if not updateUrl:
+            return
 
-
-if __name__ == '__main__':
-    args = sys.argv
-    removeTmp = False
-    key = None
-    # --------------------------------------------- Removed when done --------------------------------------------------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    try:
-        with open('/tmp/key.txt', 'r') as f:
-            key = f.read().rstrip('\n')
-    except FileNotFoundError:
-        print('Key is none')
-    # --------------------------------------------- Removed when done --------------------------------------------------<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    if len(args) == 1:
-        #url = 'https://github.com/carlosfelgarcia/Data-Analysis-Tool/releases/download/0.0.0/UI.exe'
-        url = 'https://github.com/carlosfelgarcia/Data-Analysis-Tool/releases/tag/'
-        dest = os.path.join(tempfile.gettempdir(), 'DataAnalysis.exe')
-        removeTmp = True
-    else:
-        url = args[1]
-        dest = args[2]
-    print('URL - {url}'.format(url=url))
-    print('Dest - {dest}'.format(dest=dest))
-    # print('Version - {ver}'.format(ver=args[3]))
-    app = Installator()
-    # app.install(url, dest, key)
-    app.update(url)
+        return updateUrl
