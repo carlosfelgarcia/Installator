@@ -48,10 +48,23 @@ class Download(object):
         )
         urlHeader = {'Authorization': 'token {key}'.format(key=self.__key)} if self.__key else {}
         req = urllib.request.Request(self.__url, headers=urlHeader)
-        print('Downloading {url}....'.format(url=self.__url))
+        print('Downloading {url}'.format(url=self.__url))
         with urllib.request.urlopen(req) as response, open(fileDownloaded, 'wb') as out_file:
-                data = response.read()
-                out_file.write(data)
+            # 2 MB buffer size
+            bufferSize = 16384
+            dataDownloaded = 0
+            fileSize = int(response.getheader('Content-Length'))
+            while True:
+                buffer = response.read(bufferSize)
+                if not buffer:
+                    break
+                dataDownloaded += len(buffer)
+                out_file.write(buffer)
+                binaryFileSize = fileSize * (1024**-2)
+                dataDownloadedBinary = dataDownloaded * (1024**-2)
+                percentageDownloaded = dataDownloaded * 100 / fileSize
+                status = '{:3.2f}% ({:.2f}) / {:.2f}'.format(percentageDownloaded, dataDownloadedBinary, binaryFileSize)
+                print(status)
 
         return fileDownloaded
 

@@ -37,7 +37,6 @@ class Update(object):
             url = "{url}{mayor}.{minor}.{patch}".format(url=self.__url, mayor=mayorNum, minor=minorNum, patch=patchNum)
             urlHeader = {'Authorization': 'token {key}'.format(key=self.__key)} if self.__key else {}
             req = urllib.request.Request(url, headers=urlHeader)
-            print('Trying {url}'.format(url=url))
             try:
                 urllib.request.urlopen(req)
                 return url
