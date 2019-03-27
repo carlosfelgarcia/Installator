@@ -13,7 +13,8 @@ class Checks(object):
 
         Args:
             installedFolder (str): The folders to check the files integrity.
-            ignoreFileNames (list or None): The list of files names WITH extension to be ingore.
+            ignoreFileNames (list or None): The list of files names with extension to be ingore.
+            verbose (bool): Flag to indicate the level of verbose wanted.
 
         Return:
             bool: True if passed the check, False if it fails.

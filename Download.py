@@ -13,17 +13,19 @@ class Download(object):
 
     BINARY_EXT = ['exe']
 
-    def __init__(self, url, key=None):
+    def __init__(self, url, key=None, ui=None):
         """Constructor.
 
         Args:
             url (str): The url to download the files.
             key (str): The key to use for web auth. Defaults to None
+            ui (InstallatorUI): User Interface connection. Defaults to None.
         """
         self.setUrl(url)
         self.__fileDownloaded = None
         self.__extractedPath = None
-        self.__key = None
+        self.__key = key
+        self.__ui = ui
 
     def download(self):
         """Orchestate the download of a file.
@@ -48,23 +50,32 @@ class Download(object):
         )
         urlHeader = {'Authorization': 'token {key}'.format(key=self.__key)} if self.__key else {}
         req = urllib.request.Request(self.__url, headers=urlHeader)
-        print('Downloading {url}'.format(url=self.__url))
+        if self.__ui:
+            self.__ui.progressText.append('Downloading {url}'.format(url=self.__url))
+            self.__ui.progressBar.setValue(1)
+
         with urllib.request.urlopen(req) as response, open(fileDownloaded, 'wb') as out_file:
             # 2 MB buffer size
             bufferSize = 16384
             dataDownloaded = 0
-            fileSize = int(response.getheader('Content-Length'))
+            contentLength = response.getheader('Content-Length')
+            fileSize = int(contentLength) if contentLength else None
             while True:
                 buffer = response.read(bufferSize)
                 if not buffer:
                     break
                 dataDownloaded += len(buffer)
                 out_file.write(buffer)
-                binaryFileSize = fileSize * (1024**-2)
-                dataDownloadedBinary = dataDownloaded * (1024**-2)
-                percentageDownloaded = dataDownloaded * 100 / fileSize
-                status = '{:3.2f}% ({:.2f}) / {:.2f}'.format(percentageDownloaded, dataDownloadedBinary, binaryFileSize)
-                print(status)
+                if self.__ui:
+                    if not fileSize:
+                        continue
+                    binaryFileSize = fileSize * (1024**-2)
+                    dataDownloadedBinary = dataDownloaded * (1024**-2)
+                    percentageDownloaded = dataDownloaded * 100 / fileSize
+                    status = 'Downloading {:3.2f}% ({:.2f}) - Total size {:.2f}'.format(percentageDownloaded, dataDownloadedBinary, binaryFileSize)
+                    self.__ui.progressText.append(status)
+                    processedValue = percentageDownloaded * 0.5
+                    self.__ui.progressBar.setValue(processedValue)
 
         return fileDownloaded
 

@@ -13,7 +13,7 @@ class InstallationError(Exception):
 class Install(object):
     """Module that handle the installation and checks if the instalation is completed."""
 
-    def __init__(self, sourcePath, targetPath):
+    def __init__(self, sourcePath, targetPath, ui=None):
         """Constructor.
 
         Args:
@@ -22,6 +22,7 @@ class Install(object):
         """
         self.__sourcePath = sourcePath
         self.__targetPath = targetPath
+        self.__ui = ui
 
     def install(self):
         """Install the app base on the source and the destination given.
@@ -30,8 +31,14 @@ class Install(object):
         It then run the checks to see if the installation is completed.
         """
         if self.__checkDestination():
+            if self.__ui:
+                self.__ui.progressText.append('Destination found, removing it...')
             self.__removeFiles(self.__targetPath, verbose=True)
+        if self.__ui:
+            self.__ui.progressText.append('Copying files...')
         self.__copyFiles()
+        if self.__ui:
+            self.__ui.progressText.append('Runnign checks...')
         if not self.__runChecks():
             raise InstallationError("The installation has fail, it did not pass one of the checks")
 
